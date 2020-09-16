@@ -2,45 +2,70 @@ import _ from "understreck";
 
 /**
  * services are a list of service objects, including
+ * - id
  * - url
  * **/
-export function init({
+export function createState({
     services
 }) {
     let state = {
         services: {}
     };
     services.forEach(function (service) {
-       state.services[service.url] = {
-           data: null,
-           fetching: null,
-           statusCode: null,
-           ok: null
-       }
+        state.services[service.id] = {
+            url: service.url,
+            fetching: false,
+            data: null,
+            ok: null,
+            statusCode: null
+        }
     });
 
     return state;
 }
 
-// TODO: Needs to be fixed
-export function performSideEffects(state) {
-    _.keys[state.services].forEach(function (url) {
-       let service = state.services[url];
-       if (!service.data && !service.fetching) {
-           fetch(url)
-               .then(function (response) {
-                   service.statusCode = response.status;
-                   return response.json();
-               })
-               .then(function (json) {
-                   service.data = json;
-                   service.ok = true;
-           }).catch(function (e) {
-               service.ok = false;
-           }).finally(function () {
-               service.fetching = false;
-           });
-           service.fetching = true;
-       }
+export function getService(state, serviceId) {
+    return state.services[serviceId];
+}
+
+export function shouldFetchService(state, serviceId) {
+    let service = getService(state, serviceId);
+    return !service.fetching && !service.data;
+}
+
+export function fetchServiceStarted(state, serviceId) {
+    getService(state, serviceId).fetching = true;
+    return state;
+}
+
+export function receiveService(state, serviceId, data, ok, statusCode) {
+    let service = getService(state, serviceId);
+    service.fetching = false;
+    service.data = data;
+    service.ok = ok;
+    service.statusCode = statusCode;
+
+    return state;
+}
+
+export function shouldShowServiceLoading(state, serviceId) {
+    return shouldFetchService(state, serviceId) || getService(state, serviceId).fetching;
+}
+
+export function performSideEffects({state, swapState, system}) {
+    _.keys(state.services).forEach(function (serviceId) {
+        if (shouldFetchService(state, serviceId)) {
+            let service = getService(state, serviceId);
+            system.fetch(service.url).then(function (response) {
+                response.json().then(function (data) {
+                    swapState(receiveService, serviceId, data, response.ok, response.status);
+                }).catch(function (e) {
+                    swapState(receiveService, serviceId, null, false, -1);
+                });
+            }).catch(function (e) {
+                swapState(receiveService, serviceId, null, false, 0);
+            });
+            swapState(fetchServiceStarted, serviceId);
+        }
     });
 }
