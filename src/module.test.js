@@ -45,6 +45,30 @@ describe('module', function () {
         expect(moduleUtils.shouldShowServiceLoading(state, serviceId2)).toBeFalsy();
     });
 
+    it('can supply shouldFetch', function () {
+        let serviceId1 = "s1";
+        let serviceUrl1 = "url1";
+        let foo = false;
+        let state = moduleUtils.createState({
+            services: [{
+                id: serviceId1,
+                url: serviceUrl1,
+                shouldFetch: function () {
+                    if (!foo) {
+                        foo = true;
+                        return false;
+                    }
+                    return true;
+                }
+            }]
+        });
+
+        expect(moduleUtils.shouldFetchService(state, serviceId1)).toBeFalsy();
+
+        // Now foo has been set to true
+        expect(moduleUtils.shouldFetchService(state, serviceId1)).toBeTruthy();
+    });
+
     it('performSideEffects happy flow', function (done) {
         let serviceId1 = "s1";
         let serviceUrl1 = "url1";
@@ -86,6 +110,7 @@ describe('module', function () {
             // TODO: Everything should have resolved immediately, but it didn't work without timeout. Should be fixed (in all tests)
             // Also got error when async added to function (but adding something failing inside timeout breaks it, so test gets here)
             expect(moduleUtils.getService(state, serviceId1)).toEqual({
+                id: serviceId1,
                 url: serviceUrl1,
                 fetching: false,
                 data: "data" + serviceUrl1,
@@ -93,6 +118,7 @@ describe('module', function () {
                 statusCode: 200
             });
             expect(moduleUtils.getService(state, serviceId2)).toEqual({
+                id: serviceId2,
                 url: serviceUrl2,
                 fetching: false,
                 data: "data" + serviceUrl2,
@@ -137,6 +163,7 @@ describe('module', function () {
 
         setTimeout(function () {
             expect(moduleUtils.getService(state, serviceId1)).toEqual({
+                id: serviceId1,
                 url: serviceUrl1,
                 fetching: false,
                 data: null,
@@ -173,6 +200,7 @@ describe('module', function () {
 
         setTimeout(function () {
             expect(moduleUtils.getService(state, serviceId1)).toEqual({
+                id: serviceId1,
                 url: serviceUrl1,
                 fetching: false,
                 data: null,

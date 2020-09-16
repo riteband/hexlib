@@ -4,6 +4,7 @@ import _ from "understreck";
  * services are a list of service objects, including
  * - id
  * - url
+ * - shouldFetch
  * **/
 export function createState({
     services
@@ -12,13 +13,12 @@ export function createState({
         services: {}
     };
     services.forEach(function (service) {
-        state.services[service.id] = {
-            url: service.url,
+        state.services[service.id] = _.merge(service, {
             fetching: false,
             data: null,
             ok: null,
             statusCode: null
-        }
+        })
     });
 
     return state;
@@ -30,7 +30,7 @@ export function getService(state, serviceId) {
 
 export function shouldFetchService(state, serviceId) {
     let service = getService(state, serviceId);
-    return !service.fetching && !service.data;
+    return !service.fetching && !service.data && (service.shouldFetch ? service.shouldFetch() : true);
 }
 
 export function fetchServiceStarted(state, serviceId) {
