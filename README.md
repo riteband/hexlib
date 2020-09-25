@@ -1,2 +1,3 @@
-# hexlib
-Assorted JS app utilities
+![hexlib javascript](logo.svg)
+
+Assorted JS app utilities.
