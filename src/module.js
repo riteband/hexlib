@@ -1,16 +1,27 @@
 import _ from "understreck";
 
 /**
- * services are a list of service objects, including
+ * services is a list of service objects, including
  * - id
  * - url
- * - shouldFetch
+ * - shouldFetch function (optional)
+ *
+ * form is a list of input objects, including
+ * - id
+ * - isValid function (optional)
  * **/
 export function createState({
-    services
+    services = [],
+    form = []
 }) {
     let state = {
-        services: {}
+        services: {},
+        form: {
+            liveFormFeedback: false,
+            submittedSinceLastEdit: false,
+            submitted: false,
+            inputs: {}
+        }
     };
     services.forEach(function (service) {
         state.services[service.id] = _.merge(service, {
@@ -20,6 +31,11 @@ export function createState({
             statusCode: null
         })
     });
+    form.forEach(function (input) {
+        state.form.inputs[input.id] = _.merge(input, {
+            value: ""
+        });
+    })
 
     return state;
 }
@@ -52,6 +68,20 @@ export function shouldShowServiceLoading(state, serviceId) {
     return shouldFetchService(state, serviceId) || getService(state, serviceId).fetching;
 }
 
+export function shouldShowModuleLoading(state) {
+    return _.keys(state.services).reduce(function (isLoading, serviceId) {
+        return isLoading || shouldShowServiceLoading(state, serviceId);
+    }, false);
+}
+
+export function getServiceData(state, serviceId) {
+    return getService(state, serviceId).data;
+}
+
+export function getServiceError(state, serviceId) {
+    return getService(state, serviceId).error;
+}
+
 export function performSideEffects({state, swapState, system}) {
     _.keys(state.services).forEach(function (serviceId) {
         if (shouldFetchService(state, serviceId)) {
@@ -68,4 +98,61 @@ export function performSideEffects({state, swapState, system}) {
             swapState(fetchServiceStarted, serviceId);
         }
     });
+}
+
+export function getInput(state, inputId) {
+    return state.form.inputs[inputId];
+}
+
+export function getInputValue(state, inputId) {
+    return getInput(state, inputId).value;
+}
+
+export function onInputValueChange(state, inputId, value) {
+    state.form.submittedSinceLastEdit = false;
+    getInput(state, inputId).value = value;
+    return state;
+}
+
+export function isInputValid(state, inputId) {
+    let isValid = getInput(state, inputId).isValid;
+    return isValid ? isValid(getInputValue(state, inputId)) : true;
+}
+
+export function getInputInvalidText(state, inputId) {
+    if (isInputValid(state, inputId) || !state.form.liveFormFeedback) {
+        return;
+    }
+    return "invalid";
+}
+
+export function isFormValid(state) {
+    return _.keys(state.form.inputs).reduce(function (isValid, inputId) {
+        return isValid && isInputValid(state, inputId);
+    }, true);
+}
+
+export function getFormInvalidText(state) {
+    if (isFormValid(state) || !state.form.submittedSinceLastEdit) {
+        return;
+    }
+    return "something wrong"
+}
+
+export function onSubmitForm(state) {
+    state.form.submittedSinceLastEdit = true;
+
+    if (isFormValid(state)) {
+        state.form.liveFormFeedback = false;
+        state.form.submitted = true;
+    } else {
+        state.form.liveFormFeedback = true;
+    }
+
+    return state;
+}
+
+export function isFormSubmitted(state) {
+    // TODO: Naming not very good, submitted in this instance means a valid submit
+    return state.form.submitted;
 }
