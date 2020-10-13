@@ -16,7 +16,7 @@ describe('AppEngine', function () {
 
         var appEngine = createAppEngine({
             initialState: {a: 0},
-            sideEffectFns: [performSideEffects],
+            performSideEffectsFns: [performSideEffects],
             render: render,
             onStateChange: onStateChange
         });

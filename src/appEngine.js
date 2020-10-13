@@ -7,7 +7,7 @@ export default function createAppEngine({
     stateStore: _stateStore,
     initialState,
     render,
-    sideEffectFns: _sideEffectFns,
+    performSideEffectsFns: _performSideEffectsFns,
     onStateChange,
     system: _system
 }) {
@@ -103,8 +103,8 @@ export default function createAppEngine({
 
     stateStore.addStateChangeListener(updateApp);
 
-    if (_sideEffectFns) {
-        addSideEffectFns(_sideEffectFns, {callOnAdd: false});
+    if (_performSideEffectsFns) {
+        addSideEffectFns(_performSideEffectsFns, {callOnAdd: false});
     }
 
     updateApp();
