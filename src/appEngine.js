@@ -31,6 +31,7 @@ export default function AppEngine({
 
     function addSideEffectFn(fn) {
         sideEffectFns.push(fn);
+        fn(getFnParams());
     }
 
     function removeSideEffectFn(fn) {
