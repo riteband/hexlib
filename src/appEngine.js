@@ -29,21 +29,21 @@ export default function createAppEngine({
 
     var sideEffectFns = [];
 
-    function addSideEffectFn(fn, {callOnAdd = true} = {}) {
+    function addPerformSideEffectsFn(fn, {callOnAdd = true} = {}) {
         sideEffectFns.push(fn);
         callOnAdd && fn(getFnParams());
     }
 
-    function addSideEffectFns(fns, options) {
-        fns.forEach((fn) => addSideEffectFn(fn, options));
+    function addPerformSideEffectsFns(fns, options) {
+        fns.forEach((fn) => addPerformSideEffectsFn(fn, options));
     }
 
-    function removeSideEffectFn(fn) {
+    function removePerformSideEffectsFn(fn) {
         sideEffectFns = sideEffectFns.filter(item => item !== fn);
     }
 
-    function removeSideEffectFns(fns) {
-        fns.forEach(removeSideEffectFn);
+    function removePerformSideEffectsFns(fns) {
+        fns.forEach(removePerformSideEffectsFn);
     }
 
     function performSideEffects () {
@@ -95,16 +95,16 @@ export default function createAppEngine({
         stateStore: stateStore,
         system: system,
         changeState: stateStore.changeState,
-        addSideEffectFn: addSideEffectFn,
-        addSideEffectFns: addSideEffectFns,
-        removeSideEffectFn: removeSideEffectFn,
-        removeSideEffectFns: removeSideEffectFns
+        addPerformSideEffectsFn: addPerformSideEffectsFn,
+        addPerformSideEffectsFns: addPerformSideEffectsFns,
+        removePerformSideEffectsFn: removePerformSideEffectsFn,
+        removePerformSideEffectsFns: removePerformSideEffectsFns
     };
 
     stateStore.addStateChangeListener(updateApp);
 
     if (_performSideEffectsFns) {
-        addSideEffectFns(_performSideEffectsFns, {callOnAdd: false});
+        addPerformSideEffectsFns(_performSideEffectsFns, {callOnAdd: false});
     }
 
     updateApp();
