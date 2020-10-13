@@ -1,7 +1,7 @@
 import _ from "understreck";
 
 // WARNING: if you change the signature of this function, make sure you change the arguments slicing inside as well.
-export function changeSubState(stateId, state, f) {
+export function modifySubState(stateId, state, f) {
     stateId = _.isArray(stateId) ? stateId : [stateId];
     const args = [].slice.call(arguments, 3);
     if (!_.get(state, stateId)) {
@@ -12,14 +12,14 @@ export function changeSubState(stateId, state, f) {
 }
 
 // WARNING: if you change the signature of this function, make sure you change the arguments slicing inside as well.
-export function swapSubState(swapState, stateId, f) {
+export function changeSubState(changeState, stateId, f) {
     const args = [].slice.call(arguments, 3);
-    return swapState(function (state) {
-        return changeSubState.apply(null, [stateId, state, f].concat(args));
+    return changeState(function (state) {
+        return modifySubState.apply(null, [stateId, state, f].concat(args));
     });
 }
 
 // WARNING: if you change the signature of this function, make sure you change the arguments slicing inside as well.
-export function createSwapSubState(swapState, stateId) {
-    return swapSubState.bind(null, swapState, stateId);
+export function createChangeSubState(changeState, stateId) {
+    return changeSubState.bind(null, changeState, stateId);
 }

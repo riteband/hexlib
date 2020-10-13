@@ -3,7 +3,7 @@ import createStateStore from "./stateStore";
 import {describe, expect, it} from "@jest/globals";
 
 describe('state utils', function () {
-    describe('createSwapSubState', function () {
+    describe('createChangeSubState', function () {
         it('should work', function () {
             let stateStore = createStateStore({initialState: {
                 subState: {
@@ -19,8 +19,8 @@ describe('state utils', function () {
                 return state;
             }
 
-            let subSwapState = stateUtils.createSwapSubState(stateStore.changeState, "subState");
-            subSwapState(adder, "a", 1);
+            let subChangeState = stateUtils.createChangeSubState(stateStore.changeState, "subState");
+            subChangeState(adder, "a", 1);
             expect(stateStore.getState()).toEqual({
                 subState: {
                     a: 3,
@@ -31,8 +31,8 @@ describe('state utils', function () {
                 b: 3
             });
 
-            let subsubSwapState = stateUtils.createSwapSubState(subSwapState, "m");
-            subsubSwapState(adder, "c", -1);
+            let subsubChangeState = stateUtils.createChangeSubState(subChangeState, "m");
+            subsubChangeState(adder, "c", -1);
             expect(stateStore.getState()).toEqual({
                 subState: {
                     a: 3,
@@ -43,8 +43,8 @@ describe('state utils', function () {
                 b: 3
             });
 
-            subSwapState = stateUtils.createSwapSubState(stateStore.changeState, ["subState", "m"]);
-            subSwapState(adder, "c", 5);
+            subChangeState = stateUtils.createChangeSubState(stateStore.changeState, ["subState", "m"]);
+            subChangeState(adder, "c", 5);
             expect(stateStore.getState()).toEqual({
                 subState: {
                     a: 3,
