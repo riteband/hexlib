@@ -1,8 +1,8 @@
-import * as stateUtils from './state';
+import * as stateUtils from './stateUtils';
 import createStateStore from "./stateStore";
 import {describe, expect, it} from "@jest/globals";
 
-describe('state', function () {
+describe('state utils', function () {
     describe('createSwapSubState', function () {
         it('should work', function () {
             let stateStore = createStateStore({initialState: {

@@ -1,5 +1,5 @@
 import _ from "understreck";
-import * as stateUtils from "./state";
+import * as stateUtils from "./stateUtils";
 
 export function wrapSubStatePerformSideEffects(performSideEffects) {
     return function (args) {
