@@ -21,7 +21,8 @@
     "jest": "^26.4.2"
   },
   "scripts": {
-    "dist": "npx babel src -d dist && cp package.json dist/package.json"
+    "dist": "npx babel src -d dist && cp package.json dist/package.json && rm dist/*.test.js",
+    "test": "jest src"
   },
   "license": "MIT"
 }

@@ -1,12 +1,12 @@
-import AppEngine from './appEngine';
+import createAppEngine from './appEngine';
 
 describe('AppEngine', function () {
     it('render optimization', function () {
         var render = jest.fn();
         var onStateChange = jest.fn();
-        var performSideEffects = jest.fn(function performSideEffects({state, swapState}) {
+        var performSideEffects = jest.fn(function performSideEffects({state, changeState}) {
             if (state.a < 5) {
-                swapState(function (state) {
+                changeState(function (state) {
                     state.a++;
                     return state;
                 });
@@ -14,9 +14,9 @@ describe('AppEngine', function () {
         });
 
 
-        var appEngine = AppEngine({
+        var appEngine = createAppEngine({
             initialState: {a: 0},
-            performSideEffects: performSideEffects,
+            sideEffectFns: [performSideEffects],
             render: render,
             onStateChange: onStateChange
         });

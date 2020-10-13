@@ -1,11 +1,11 @@
 import * as stateUtils from './state';
-import Atom from "hexlib/atom";
+import createStateStore from "./stateStore";
 import {describe, expect, it} from "@jest/globals";
 
 describe('state', function () {
     describe('createSwapSubState', function () {
         it('should work', function () {
-            let stateAtom = Atom({
+            let stateStore = createStateStore({initialState: {
                 subState: {
                     a: 2,
                     m: {
@@ -13,15 +13,15 @@ describe('state', function () {
                     }
                 },
                 b: 3
-            });
+            }});
             function adder(state, id, n) {
                 state[id] += n;
                 return state;
             }
 
-            let subSwapState = stateUtils.createSwapSubState(stateAtom.swap, "subState");
+            let subSwapState = stateUtils.createSwapSubState(stateStore.changeState, "subState");
             subSwapState(adder, "a", 1);
-            expect(stateAtom.deref()).toEqual({
+            expect(stateStore.getState()).toEqual({
                 subState: {
                     a: 3,
                     m: {
@@ -33,7 +33,7 @@ describe('state', function () {
 
             let subsubSwapState = stateUtils.createSwapSubState(subSwapState, "m");
             subsubSwapState(adder, "c", -1);
-            expect(stateAtom.deref()).toEqual({
+            expect(stateStore.getState()).toEqual({
                 subState: {
                     a: 3,
                     m: {
@@ -43,9 +43,9 @@ describe('state', function () {
                 b: 3
             });
 
-            subSwapState = stateUtils.createSwapSubState(stateAtom.swap, ["subState", "m"]);
+            subSwapState = stateUtils.createSwapSubState(stateStore.changeState, ["subState", "m"]);
             subSwapState(adder, "c", 5);
-            expect(stateAtom.deref()).toEqual({
+            expect(stateStore.getState()).toEqual({
                 subState: {
                     a: 3,
                     m: {

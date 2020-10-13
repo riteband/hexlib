@@ -1,26 +1,26 @@
-import Atom from "./atom";
+import createStateStore from "./stateStore";
 
 function noop() {
 }
 
-export default function AppEngine({
-    stateAtom: _stateAtom,
+export default function createAppEngine({
+    stateStore: _stateStore,
     initialState,
     render,
-    performSideEffects: _performSideEffects,
+    sideEffectFns: _sideEffectFns,
     onStateChange,
     system: _system
 }) {
-    if (!initialState && !_stateAtom) {
-        throw new Error("initialState or stateAtom required");
+    if (!initialState && !_stateStore) {
+        throw new Error("initialState or stateStore required");
     }
 
-    if (_stateAtom && !_stateAtom.deref()) {
-        throw new Error("stateAtom needs to have a state");
+    if (_stateStore && !_stateStore.getState()) {
+        throw new Error("stateStore needs to have a state");
     }
 
-    if (initialState && _stateAtom) {
-        throw new Error("Can't have both initialState and stateAtom");
+    if (initialState && _stateStore) {
+        throw new Error("Can't have both initialState and stateStore");
     }
 
     function stop() {
@@ -29,17 +29,21 @@ export default function AppEngine({
 
     var sideEffectFns = [];
 
-    function addSideEffectFn(fn) {
+    function addSideEffectFn(fn, {callOnAdd = true} = {}) {
         sideEffectFns.push(fn);
-        fn(getFnParams());
+        callOnAdd && fn(getFnParams());
+    }
+
+    function addSideEffectFns(fns, options) {
+        fns.forEach((fn) => addSideEffectFn(fn, options));
     }
 
     function removeSideEffectFn(fn) {
         sideEffectFns = sideEffectFns.filter(item => item !== fn);
     }
 
-    if (_performSideEffects) {
-        addSideEffectFn(_performSideEffects);
+    function removeSideEffectFns(fns) {
+        fns.forEach(removeSideEffectFn);
     }
 
     function performSideEffects () {
@@ -48,24 +52,11 @@ export default function AppEngine({
         });
     }
 
-    const atom = _stateAtom || Atom(initialState);
-    const system = _system;
-    const engine = {
-        render: render || noop,
-        onStateChange: onStateChange || noop,
-        stop: stop,
-        stateAtom: atom,
-        system: system,
-        swapState: atom.swap,
-        addSideEffectFn: addSideEffectFn,
-        removeSideEffectFn: removeSideEffectFn
-    };
-
     function getFnParams() {
         return {
             system: system,
-            state: atom.deref(),
-            swapState: atom.swap
+            state: stateStore.getState(),
+            changeState: stateStore.changeState
         };
     }
 
@@ -77,7 +68,7 @@ export default function AppEngine({
 
     var updateCallsForCurrentFrame = 0; // 1
 
-    function updateApp(state) {
+    function updateApp() {
         // 1
         updateCallsForCurrentFrame++;
         const updateCallsBeforeSideEffects = updateCallsForCurrentFrame;
@@ -95,9 +86,28 @@ export default function AppEngine({
         engine.onStateChange(getFnParams());
     }
 
-    atom.onChange(updateApp);
+    const stateStore = _stateStore || createStateStore({initialState});
+    const system = _system;
+    const engine = {
+        render: render || noop,
+        onStateChange: onStateChange || noop,
+        stop: stop,
+        stateStore: stateStore,
+        system: system,
+        changeState: stateStore.changeState,
+        addSideEffectFn: addSideEffectFn,
+        addSideEffectFns: addSideEffectFns,
+        removeSideEffectFn: removeSideEffectFn,
+        removeSideEffectFns: removeSideEffectFns
+    };
 
-    updateApp(atom.deref());
+    stateStore.addStateChangeListener(updateApp);
+
+    if (_sideEffectFns) {
+        addSideEffectFns(_sideEffectFns, {callOnAdd: false});
+    }
+
+    updateApp();
 
     return engine;
 }
